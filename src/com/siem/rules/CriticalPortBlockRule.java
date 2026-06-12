@@ -9,7 +9,7 @@ public class CriticalPortBlockRule implements DetectionRule {
     public boolean evaluate(LogEntry entry) {
         if (entry instanceof FirewallLog) {
             FirewallLog fwLog = (FirewallLog) entry;
-            // Alert if firewall blocks connections targeted at sensitive administrative services
+
             return "BLOCK".equals(fwLog.getAction()) && 
                    (fwLog.getDestinationPort() == 22 || fwLog.getDestinationPort() == 8000);
         }

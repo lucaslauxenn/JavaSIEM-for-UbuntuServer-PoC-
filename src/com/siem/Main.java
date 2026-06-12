@@ -10,5 +10,6 @@ public class Main {
             SiemGui gui = new SiemGui();
             gui.setVisible(true);
         });
+
     }
 }

@@ -93,10 +93,10 @@ public class SiemGui extends JFrame {
                 isMonitoring = true;
                 btnLiveMonitor.setText("Parar Monitoramento");
                 btnLiveMonitor.setBackground(new Color(200, 50, 50));
-                iniciarMonitoramentoReal("/var/log/auth.log");
+                iniciarMonitoramentoReal("/var/log/vm_auth.log");
             } else {
                 isMonitoring = false;
-                btnLiveMonitor.setText("Monitorar /var/log/auth.log");
+                btnLiveMonitor.setText("Monitorar /var/log/vm_auth.log");
                 btnLiveMonitor.setBackground(new Color(40, 160, 80));
                 if (monitorThread != null) monitorThread.interrupt();
             }
@@ -104,40 +104,35 @@ public class SiemGui extends JFrame {
     }
 
     private void iniciarMonitoramentoReal(String filePath) {
-        // Criamos uma Thread separada para o loop infinito não travar a interface gráfica
         monitorThread = new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+
+            java.nio.file.Path path = java.nio.file.Paths.get(filePath);
+
+            try (BufferedReader reader = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8)) {
                 String line;
 
-                // Primeiro, avança o ponteiro até o fim do arquivo atual para monitorar apenas o que acontecer DAQUI PRA FRENTE
-                System.out.println("[INFO] Lendo linhas preexistentes e aguardando novos eventos...");
-                while ((reader.readLine()) != null) {
-                    // Ignora o histórico antigo para evitar sobrecarga inicial na tabela visual
+                System.out.println("[INFO] Carregando histórico e iniciando monitoramento ativo...");
+
+                // Processa o histórico existente
+                while ((line = reader.readLine()) != null) {
+                    final String existingLine = line;
+                    SwingUtilities.invokeLater(() -> processarLinhaDeLog(existingLine));
                 }
 
-                // Loop infinito estilo 'tail -f' do Linux
+                // Loop contínuo para novos eventos
                 while (isMonitoring) {
                     line = reader.readLine();
                     if (line != null) {
                         final String finalLine = line;
-                        // Executa a atualização da interface dentro da thread correta do Swing
                         SwingUtilities.invokeLater(() -> processarLinhaDeLog(finalLine));
                     } else {
-                        // Se não há linhas novas, espera 500ms antes de checar o arquivo novamente
-                        Thread.sleep(500);
+                        Thread.sleep(300);
                     }
                 }
             } catch (IOException e) {
-                System.err.println("[ERRO DE PERMISSÃO] Não foi possível ler " + filePath);
-                System.err.println("Dica: Certifique-se de executar o programa como root (sudo) ou mude as permissões do arquivo.");
-                SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(this,
-                            "Erro ao acessar /var/log/auth.log.\nExecute o programa usando 'sudo' no terminal.",
-                            "Erro de Permissão",
-                            JOptionPane.ERROR_MESSAGE); // <-- Corrigido aqui
-                });
+                System.err.println("[ERRO DE LEITURA] Falha ao acessar o arquivo: " + e.getMessage());
             } catch (InterruptedException e) {
-                System.out.println("[INFO] Monitoramento pausado pelo analista.");
+                System.out.println("[INFO] Monitoramento pausado.");
             }
         });
         monitorThread.start();
