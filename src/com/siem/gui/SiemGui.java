@@ -55,9 +55,8 @@ public class SiemGui extends JFrame {
 
         add(topPanel, BorderLayout.NORTH);
 
-        // -----------------------------------------------------------------
+
         // 2. Painel Central: Tabela de Logs Processados
-        // -----------------------------------------------------------------
         String[] columnNames = {"Data/Hora", "IP de Origem", "Nível", "Detalhes do Evento"};
         tableModel = new DefaultTableModel(columnNames, 0);
         JTable logTable = new JTable(tableModel);
@@ -67,9 +66,8 @@ public class SiemGui extends JFrame {
         JScrollPane tableScrollPane = new JScrollPane(logTable);
         tableScrollPane.setBorder(BorderFactory.createTitledBorder("Logs Capturados no Sistema"));
 
-        // -----------------------------------------------------------------
+
         // 3. Painel Inferior: Terminal de Alertas
-        // -----------------------------------------------------------------
         alertTextArea = new JTextArea(10, 50);
         alertTextArea.setFont(new Font("Consolas", Font.BOLD, 12));
         alertTextArea.setBackground(new Color(20, 20, 20));
